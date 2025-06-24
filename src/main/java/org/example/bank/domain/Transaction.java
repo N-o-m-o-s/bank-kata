@@ -13,12 +13,8 @@ public class Transaction {
         this.balance = balance;
     }
 
-    public static Transaction ofDeposit(int amount, int balance) {
-        return new Transaction(LocalDate.now(), amount, balance);
-    }
-
-    public static Transaction ofWithdrawal(int amount, int balance) {
-        return new Transaction(LocalDate.now(), -amount, balance);
+    public static Transaction of(LocalDate date, int amount, int balance) {
+        return new Transaction(date, amount, balance);
     }
 
     public LocalDate getDate() {
@@ -36,7 +32,7 @@ public class Transaction {
     @Override
     public String toString() {
         // format "YYYY-MM-DD | +100 | 100"
-        String sign = amount >= 0 ? "+" : "";
-        return date + " | " + sign + amount + " | " + balance;
+        String sign = getAmount() >= 0 ? "+" : "";
+        return getDate() + " | " + sign + getAmount() + " | " + getBalance();
     }
 }
