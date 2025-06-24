@@ -1,7 +1,9 @@
 package org.example.bank.factory;
 
 import org.example.bank.domain.Transaction;
+import org.example.bank.domain.TransactionType;
 
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDate;
 
@@ -12,11 +14,11 @@ public class TransactionFactory {
         this.clock = clock;
     }
 
-    public Transaction deposit(int amount, int balance) {
-        return Transaction.of(LocalDate.now(clock), amount, balance);
+    public Transaction deposit(BigDecimal amount, BigDecimal balance) {
+        return Transaction.of(LocalDate.now(clock), amount, balance, TransactionType.DEPOSIT);
     }
 
-    public Transaction withdrawal(int amount, int balance) {
-        return Transaction.of(LocalDate.now(clock), -amount, balance);
+    public Transaction withdrawal(BigDecimal amount, BigDecimal balance) {
+        return Transaction.of(LocalDate.now(clock), amount.negate(), balance, TransactionType.WITHDRAWAL);
     }
 }

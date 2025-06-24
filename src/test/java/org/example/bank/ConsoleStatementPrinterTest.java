@@ -1,14 +1,12 @@
 package org.example.bank;
 
 import org.example.bank.domain.Transaction;
-import org.example.bank.factory.TransactionFactory;
+import org.example.bank.domain.TransactionType;
 import org.example.bank.service.ConsoleStatementPrinter;
-import org.example.bank.service.StatementPrinter;
 import org.junit.jupiter.api.Test;
 
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,25 +16,29 @@ class ConsoleStatementPrinterTest {
 
     @Test
     void print_emptyTransactions_showsOnlyHeader() {
-        StatementPrinter printer = new ConsoleStatementPrinter();
-        String out = printer.print(List.of());
-        assertEquals("DATE | AMOUNT | BALANCE", out.trim());
+        String out = new ConsoleStatementPrinter()
+                .print(List.of());
+        assertEquals("DATE | TYPE | AMOUNT | BALANCE", out.trim());
     }
 
     @Test
-    void print_multipleTransactions_formatsCorrectly() {
-        Clock fixed = Clock.fixed(Instant.parse("2025-06-01T00:00:00Z"), ZoneId.of("UTC"));
-        TransactionFactory factory = new TransactionFactory(fixed);
+    void print_includesTypeAndAmountsWithScale() {
         List<Transaction> txs = List.of(
-                factory.deposit(100, 100),
-                factory.withdrawal(20, 80)
+                Transaction.of(LocalDate.of(2025,6,1),
+                        new BigDecimal("10.1"),
+                        new BigDecimal("10.10"),
+                        TransactionType.DEPOSIT),
+                Transaction.of(LocalDate.of(2025,6,1),
+                        new BigDecimal("5.555").negate(),
+                        new BigDecimal("4.54"),
+                        TransactionType.WITHDRAWAL)
         );
+        String[] lines = new ConsoleStatementPrinter()
+                .print(txs)
+                .split("\n");
 
-        StatementPrinter printer = new ConsoleStatementPrinter();
-        String[] lines = printer.print(txs).split("\n");
-
-        assertEquals("DATE | AMOUNT | BALANCE", lines[0]);
-        assertTrue(lines[1].contains("2025-06-01 | +100 | 100"));
-        assertTrue(lines[2].contains("2025-06-01 | -20 | 80"));
+        assertEquals("DATE | TYPE | AMOUNT | BALANCE", lines[0]);
+        assertTrue(lines[1].contains("DEPOSIT | +10.10 | 10.10"));
+        assertTrue(lines[2].contains("WITHDRAWAL | -5.56 | 4.54"));
     }
 }
