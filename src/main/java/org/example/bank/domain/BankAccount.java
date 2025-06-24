@@ -3,13 +3,15 @@ package org.example.bank.domain;
 import org.example.bank.factory.TransactionFactory;
 import org.example.bank.util.AmountValidator;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 
 public class BankAccount {
     private final List<Transaction> transactions = new ArrayList<>();
-    private int balance = 0;
+    private BigDecimal balance = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
     private final TransactionFactory txFactory;
 
     // Tests - inherit clock
@@ -22,15 +24,15 @@ public class BankAccount {
         this(Clock.systemDefaultZone());
     }
 
-    public void deposit(int amount) {
+    public void deposit(BigDecimal amount) {
         AmountValidator.requirePositive(amount);
-        balance += amount;
+        balance = balance.add(amount).setScale(2, RoundingMode.HALF_UP);
         transactions.add(txFactory.deposit(amount, balance));
     }
 
-    public void withdraw(int amount) {
+    public void withdraw(BigDecimal amount) {
         AmountValidator.requirePositive(amount);
-        balance -= amount;
+        balance = balance.subtract(amount).setScale(2, RoundingMode.HALF_UP);
         transactions.add(txFactory.withdrawal(amount, balance));
     }
 

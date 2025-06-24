@@ -1,9 +1,11 @@
 package org.example.bank;
 
 import org.example.bank.domain.Transaction;
+import org.example.bank.domain.TransactionType;
 import org.example.bank.factory.TransactionFactory;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -14,25 +16,45 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TransactionTest {
 
-    @Test
-    void ofDeposit_shouldSetPositiveAmountAndCorrectDateAndBalance() {
-        Clock fixed = Clock.fixed(Instant.parse("2025-06-01T00:00:00Z"), ZoneId.of("UTC"));
-        TransactionFactory factory = new TransactionFactory(fixed);
+    private final Clock fixed = Clock.fixed(
+            Instant.parse("2025-06-01T00:00:00Z"), ZoneId.of("UTC")
+    );
+    private final TransactionFactory factory = new TransactionFactory(fixed);
 
-        Transaction tx = factory.deposit(123, 500);
-        assertEquals(LocalDate.of(2025, 6, 1), tx.getDate());
-        assertEquals(123, tx.getAmount());
-        assertEquals(500, tx.getBalance());
+    @Test
+    void ofDeposit_setsCorrectFieldsAndTypeAndScale() {
+        Transaction tx = factory.deposit(
+                new BigDecimal("2.235"),
+                new BigDecimal("10.005")
+        );
+
+        assertEquals(LocalDate.of(2025,6,1), tx.getDate());
+        assertEquals(TransactionType.DEPOSIT, tx.getType());
+        assertEquals(new BigDecimal("2.24"), tx.getAmount());
+        assertEquals(new BigDecimal("10.01"), tx.getBalance());
     }
 
     @Test
-    void ofWithdrawal_shouldSetNegativeAmount() {
-        Clock fixed = Clock.fixed(Instant.parse("2025-06-02T00:00:00Z"), ZoneId.of("UTC"));
-        TransactionFactory factory = new TransactionFactory(fixed);
+    void ofWithdrawal_setsNegativeAmountAndType() {
+        Transaction tx = factory.withdrawal(
+                new BigDecimal("1.235"),
+                new BigDecimal("8.765")
+        );
 
-        Transaction tx = factory.withdrawal(50, 450);
-        assertEquals(LocalDate.of(2025, 6, 2), tx.getDate());
-        assertTrue(tx.getAmount() < 0);
-        assertEquals(450, tx.getBalance());
+        assertEquals(TransactionType.WITHDRAWAL, tx.getType());
+        assertTrue(tx.getAmount().compareTo(BigDecimal.ZERO) < 0);
+        assertEquals(new BigDecimal("8.77"), tx.getBalance()); // 8.765 → 8.77
+    }
+
+    @Test
+    void toString_includesAllColumns() {
+        Transaction tx = Transaction.of(
+                LocalDate.of(2025, 6, 5),
+                new BigDecimal("3.50"),
+                new BigDecimal("100.00"),
+                TransactionType.DEPOSIT
+        );
+        String s = tx.toString();
+        assertTrue(s.startsWith("2025-06-05 | DEPOSIT | +3.50 | 100.00"));
     }
 }

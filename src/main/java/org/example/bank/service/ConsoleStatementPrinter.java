@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class ConsoleStatementPrinter implements StatementPrinter {
-    private static final String HEADER = "DATE | AMOUNT | BALANCE";
+    private static final String HEADER = "DATE | TYPE | AMOUNT | BALANCE";
 
     public String print(List<Transaction> transactions) {
         String body = transactions.stream()
